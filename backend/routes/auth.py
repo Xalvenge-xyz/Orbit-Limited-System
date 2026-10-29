@@ -126,6 +126,9 @@ def forgot_password():
             # send email
             try:
                 from backend.extensions import mail
+                from flask import current_app
+                if not current_app.config.get("MAIL_USERNAME") or not current_app.config.get("MAIL_SERVER"):
+                    raise RuntimeError("mail not configured")
                 from flask_mail import Message
                 msg = Message(
                     subject="ORBIT-POS Password Reset OTP",
@@ -137,8 +140,9 @@ def forgot_password():
                 flash("A 6-digit OTP has been sent to your email.", "success")
                 print(f"[ORBIT-POS] OTP sent to {email}: {otp}", flush=True)
             except Exception as e:
-                # dev fallback: show OTP in flash (remove in production)
-                flash(f"Email not configured. Dev OTP: {otp}", "warning")
+                # dev fallback: show OTP on screen if email unavailable
+                flash(f"Email unavailable. Dev OTP: {otp}", "warning")
+                print(f"[ORBIT-POS] Email failed ({e}); OTP for {email}: {otp}", flush=True)
         else:
             flash("If the account exists, a reset code has been sent.", "info")
         return redirect(url_for("auth.reset_password"))
