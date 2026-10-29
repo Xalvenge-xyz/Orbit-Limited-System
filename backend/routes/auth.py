@@ -126,19 +126,45 @@ def forgot_password():
             # send email
             try:
                 from flask import current_app
-                if not current_app.config.get("MAIL_ENABLED") or not current_app.config.get("MAIL_USERNAME") or not current_app.config.get("MAIL_SERVER"):
-                    raise RuntimeError("mail not configured")
-                from backend.extensions import mail
-                from flask_mail import Message
-                msg = Message(
-                    subject="ORBIT-POS Password Reset OTP",
-                    sender=app_config_mail_sender(),
-                    recipients=[email],
-                )
-                msg.body = f"Your ORBIT-POS password reset code is: {otp}\n\nThis code expires in 10 minutes. If you did not request this, ignore this email."
-                mail.send(msg)
-                flash("A 6-digit OTP has been sent to your email.", "success")
-                print(f"[ORBIT-POS] OTP sent to {email}: {otp}", flush=True)
+                otp_sent = False
+                # Try Resend HTTP API (works on Render free tier, no SMTP needed)
+                resend_key = current_app.config.get("RESEND_API_KEY") or os.environ.get("RESEND_API_KEY")
+                if resend_key:
+                    import json as _json
+                    import urllib.request as _urllib
+                    payload = _json.dumps({
+                        "from": current_app.config.get("MAIL_DEFAULT_SENDER") or "onboarding@resend.dev",
+                        "to": [email],
+                        "subject": "ORBIT-POS Password Reset OTP",
+                        "text": f"Your ORBIT-POS password reset code is: {otp}\n\nThis code expires in 10 minutes. If you did not request this, ignore this email.",
+                    }).encode()
+                    req = _urllib.Request(
+                        "https://api.resend.com/emails",
+                        data=payload,
+                        headers={"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"},
+                    )
+                    with _urllib.urlopen(req, timeout=10) as resp:
+                        if resp.status in (200, 201):
+                            otp_sent = True
+                # Fallback: SMTP (only if explicitly enabled and not on blocked network)
+                elif current_app.config.get("MAIL_ENABLED") and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_SERVER"):
+                    from backend.extensions import mail
+                    from flask_mail import Message
+                    msg = Message(
+                        subject="ORBIT-POS Password Reset OTP",
+                        sender=app_config_mail_sender(),
+                        recipients=[email],
+                    )
+                    msg.body = f"Your ORBIT-POS password reset code is: {otp}\n\nThis code expires in 10 minutes. If you did not request this, ignore this email."
+                    mail.send(msg)
+                    otp_sent = True
+
+                if otp_sent:
+                    flash("A 6-digit OTP has been sent to your email.", "success")
+                    print(f"[ORBIT-POS] OTP sent to {email}: {otp}", flush=True)
+                else:
+                    flash(f"Email unavailable. Dev OTP: {otp}", "warning")
+                    print(f"[ORBIT-POS] OTP for {email}: {otp}", flush=True)
             except Exception as e:
                 # dev fallback: show OTP on screen if email unavailable
                 flash(f"Email unavailable. Dev OTP: {otp}", "warning")
