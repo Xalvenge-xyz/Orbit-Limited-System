@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Telemetry Overview - ORBIT-POS{% endblock %}
+{% block content %}
+<div class="space-y-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="nasa-border bg-nasa-panel p-5 rounded-lg flex flex-col justify-between">
+      <div class="flex justify-between items-start">
+        <div><p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Capital</p><h3 id="kpiCapital" class="text-2xl font-orbitron font-extrabold text-white mt-1">₱0.00</h3></div>
+        <div class="p-2 rounded bg-nasa-card border border-nasa-border text-nasa-amber"><i data-lucide="coins" class="w-5 h-5"></i></div>
+      </div>
+    </div>
+    <div class="nasa-border bg-nasa-panel p-5 rounded-lg flex flex-col justify-between">
+      <div class="flex justify-between items-start">
+        <div><p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Gross Sales</p><h3 id="kpiGrossSales" class="text-2xl font-orbitron font-extrabold text-nasa-cyan mt-1">₱0.00</h3></div>
+        <div class="p-2 rounded bg-nasa-card border border-nasa-border text-nasa-cyan"><i data-lucide="trending-up" class="w-5 h-5"></i></div>
+      </div>
+    </div>
+    <div class="nasa-border bg-nasa-panel p-5 rounded-lg flex flex-col justify-between">
+      <div class="flex justify-between items-start">
+        <div><p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Net Profit</p><h3 id="kpiNetProfit" class="text-2xl font-orbitron font-extrabold text-nasa-green mt-1">₱0.00</h3></div>
+        <div class="p-2 rounded bg-nasa-card border border-nasa-border text-nasa-green"><i data-lucide="wallet" class="w-5 h-5"></i></div>
+      </div>
+    </div>
+    <div class="nasa-border bg-nasa-panel p-5 rounded-lg flex flex-col justify-between">
+      <div class="flex justify-between items-start">
+        <div><p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Items Sold</p><h3 id="kpiItemsSold" class="text-2xl font-orbitron font-extrabold text-white mt-1">0</h3></div>
+        <div class="p-2 rounded bg-nasa-card border border-nasa-border text-nasa-cyan"><i data-lucide="shopping-bag" class="w-5 h-5"></i></div>
+      </div>
+    </div>
+    <div class="nasa-border bg-nasa-panel p-5 rounded-lg flex flex-col justify-between">
+      <div class="flex justify-between items-start">
+        <div><p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">ROI</p><h3 id="kpiROI" class="text-2xl font-orbitron font-extrabold text-nasa-green mt-1">0.0%</h3></div>
+        <div class="p-2 rounded bg-nasa-card border border-nasa-border text-nasa-green"><i data-lucide="percent" class="w-5 h-5"></i></div>
+      </div>
+    </div>
+    <div class="nasa-border bg-nasa-panel p-5 rounded-lg flex flex-col justify-between">
+      <div class="flex justify-between items-start">
+        <div><p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Unpaid Debt</p><h3 id="kpiUnpaidDebt" class="text-2xl font-orbitron font-extrabold text-nasa-red mt-1">₱0.00</h3></div>
+        <div class="p-2 rounded bg-nasa-card border border-nasa-border text-nasa-red"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+      </div>
+    </div>
+    <div class="nasa-border bg-nasa-panel p-5 rounded-lg flex flex-col justify-between">
+      <div class="flex justify-between items-start">
+        <div><p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Total Stock Available</p><h3 id="kpiTotalStock" class="text-2xl font-orbitron font-extrabold text-white mt-1">0</h3></div>
+        <div class="p-2 rounded bg-nasa-card border border-nasa-border text-nasa-cyan"><i data-lucide="boxes" class="w-5 h-5"></i></div>
+      </div>
+    </div>
+  </div>
+  <div class="nasa-border bg-nasa-panel p-6 rounded-lg">
+    <h2 class="font-orbitron font-bold text-white text-base mb-4 flex items-center gap-2"><i data-lucide="package" class="w-5 h-5 text-nasa-cyan"></i> Inventory Estimation</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="bg-nasa-card/60 p-4 rounded border border-nasa-border"><p class="text-[10px] font-mono text-slate-400 uppercase">Capital Cost</p><p id="estCapital" class="text-xl font-orbitron font-bold text-white mt-1">₱0.00</p></div>
+      <div class="bg-nasa-card/60 p-4 rounded border border-nasa-border"><p class="text-[10px] font-mono text-slate-400 uppercase">Est. Gross (Max Price)</p><p id="estGrossMax" class="text-xl font-orbitron font-bold text-nasa-amber mt-1">₱0.00</p></div>
+      <div class="bg-nasa-card/60 p-4 rounded border border-nasa-border"><p class="text-[10px] font-mono text-slate-400 uppercase">Est. Gross (Min Price)</p><p id="estGrossMin" class="text-xl font-orbitron font-bold text-nasa-amber mt-1">₱0.00</p></div>
+      <div class="bg-nasa-card/60 p-4 rounded border border-nasa-border"><p class="text-[10px] font-mono text-slate-400 uppercase">Est. Net Profit (Max)</p><p id="estNetMax" class="text-xl font-orbitron font-bold text-nasa-green mt-1">₱0.00</p></div>
+      <div class="bg-nasa-card/60 p-4 rounded border border-nasa-border"><p class="text-[10px] font-mono text-slate-400 uppercase">Est. Net Profit (Min)</p><p id="estNetMin" class="text-xl font-orbitron font-bold text-nasa-green mt-1">₱0.00</p></div>
+    </div>
+  </div>
+    <div class="grid grid-cols-2 gap-6">
+    <div class="nasa-border bg-nasa-panel p-5 rounded-lg">
+      <h3 class="font-orbitron text-xs font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2"><i data-lucide="pie-chart" class="w-4 h-4 text-nasa-cyan"></i> Inventory by Category</h3>
+      <div class="h-64 relative" style="min-height:256px;"><canvas id="chartInventoryCategory"></canvas></div>
+    </div>
+    <div class="nasa-border bg-nasa-panel p-5 rounded-lg">
+      <h3 class="font-orbitron text-xs font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2"><i data-lucide="bar-chart" class="w-4 h-4 text-nasa-cyan"></i> Sales Revenue by Date</h3>
+      <div class="h-64 relative" style="min-height:256px;"><canvas id="chartSalesByDate"></canvas></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.lucide) lucide.createIcons();
+  try {
+    const m = await api.get('/dashboard/api/metrics');
+    document.getElementById('kpiCapital').textContent = formatPHP(m.capital);
+    document.getElementById('kpiGrossSales').textContent = formatPHP(m.gross_sales);
+    document.getElementById('kpiNetProfit').textContent = formatPHP(m.net_profit);
+    document.getElementById('kpiItemsSold').textContent = m.items_sold;
+    document.getElementById('kpiROI').textContent = m.roi.toFixed(1) + '%';
+    document.getElementById('kpiUnpaidDebt').textContent = formatPHP(m.unpaid_debt);
+    document.getElementById('kpiTotalStock').textContent = m.total_stock;
+  document.getElementById('estCapital').textContent = formatPHP(m.est_capital);
+  document.getElementById('estGrossMax').textContent = formatPHP(m.est_gross_max);
+  document.getElementById('estGrossMin').textContent = formatPHP(m.est_gross_min);
+  document.getElementById('estNetMax').textContent = formatPHP(m.est_net_max);
+  document.getElementById('estNetMin').textContent = formatPHP(m.est_net_min);
+    if (window.Chart && window.chartManager) {
+      try {
+        const pie = document.getElementById('chartInventoryCategory');
+        if (pie) {
+          const labels = (m.inventory_by_category||[]).map(x=>x.category);
+          const data = (m.inventory_by_category||[]).map(x=>x.stock);
+          window.chartManager.create('invCat', pie.getContext('2d'), { type:'pie', data:{ labels, datasets:[{data, backgroundColor:['#00f0ff','#ff6b00','#ffaa00','#00ff88','#ff2a6d','#6366F1','#9bb0cc']}] }, options:{ maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#c0cdf0' } } } } });
+        }
+        const bar = document.getElementById('chartSalesByDate');
+        if (bar) {
+          const labels = (m.sales_by_date||[]).map(x=>x.date);
+          const data = (m.sales_by_date||[]).map(x=>x.revenue);
+          window.chartManager.create('salesDate', bar.getContext('2d'), { type:'bar', data:{ labels, datasets:[{label:'Revenue', data, backgroundColor:'#00f0ff'}] }, options:{ maintainAspectRatio:false, scales:{ x:{ticks:{color:'#9bb0cc'}}, y:{ticks:{color:'#9bb0cc'}} }, plugins:{ legend:{ labels:{ color:'#c0cdf0' } } } } });
+        }
+      } catch(e){ console.error('chart error', e); const c=document.getElementById('toast-container'); if(c){const t=document.createElement('div'); t.className='nasa-border bg-nasa-panel border-nasa-red text-nasa-red px-4 py-3 rounded font-mono text-xs'; t.textContent='Chart error: '+e.message; c.appendChild(t);} }
+    } else {
+      console.error('Chart.js or chartManager not loaded');
+    }
+  } catch(e){ console.error(e); }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Purchases - ORBIT-POS{% endblock %}
+{% block content %}
+<div class="space-y-4">
+  <div class="nasa-border bg-nasa-panel p-4 rounded-lg flex items-center justify-between">
+    <h2 class="font-orbitron font-bold text-white text-base">Purchases</h2>
+    <button id="btnAddPurchase" class="px-4 py-2 bg-nasa-cyan text-black font-mono font-bold text-xs rounded">Record Purchase</button>
+  </div>
+  <div class="nasa-border bg-nasa-panel rounded-lg overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left font-mono text-xs table-fixed">
+        <thead><tr class="bg-nasa-card text-slate-400 uppercase text-[10px] border-b border-nasa-border"><th class="p-3">Date</th><th class="p-3">Supplier</th><th class="p-3 text-right">Total</th><th class="p-3 text-right">Paid</th><th class="p-3 text-center">Actions</th></tr></thead>
+        <tbody id="purchaseTableBody" class="divide-y divide-nasa-border"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div id="purchaseModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+  <div class="nasa-border bg-nasa-panel rounded-lg shadow-2xl w-full max-w-md overflow-hidden font-mono text-xs">
+    <div class="p-4 bg-nasa-card border-b border-nasa-border text-white font-orbitron font-bold">Record Purchase</div>
+    <div class="p-5 space-y-3">
+      <div><label class="block text-slate-400 uppercase mb-1">Supplier (name, auto-create)</label><input id="purSupplier" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" placeholder="e.g. Shopee / Wholesale Corp" /></div>
+      <div><label class="block text-slate-400 uppercase mb-1">Reference</label><input id="purReference" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" placeholder="Order number" /></div>
+      <div><label class="block text-slate-400 uppercase mb-1">Amount (Total)</label><input type="number" step="0.01" id="purPaid" value="" placeholder="0.00" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+      <div><label class="block text-slate-400 uppercase mb-1">Notes</label><textarea id="purNotes" rows="3" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white font-mono text-xs"></textarea></div>
+      <div class="pt-2 flex justify-end gap-2">
+        <button type="button" id="purchaseClose" onclick="document.getElementById('purchaseModal').classList.add('hidden');" class="px-4 py-2 bg-nasa-bg border border-nasa-border rounded text-slate-400 hover:text-white">Cancel</button>
+        <button type="button" onclick="submitPurchase()" class="px-5 py-2 bg-nasa-cyan text-black font-bold rounded">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="editPurModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+  <div class="nasa-border bg-nasa-panel rounded-lg shadow-2xl w-full max-w-md overflow-hidden font-mono text-xs">
+    <div class="p-4 bg-nasa-card border-b border-nasa-border text-white font-orbitron font-bold">Edit Purchase</div>
+    <div class="p-5 space-y-3">
+      <input type="hidden" id="editPurId" />
+      <div><label class="block text-slate-400 uppercase mb-1">Reference</label><input id="editPurRef" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+      <div><label class="block text-slate-400 uppercase mb-1">Amount Paid</label><input type="number" step="0.01" id="editPurPaid" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+      <div><label class="block text-slate-400 uppercase mb-1">Notes</label><textarea id="editPurNotes" rows="3" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white font-mono text-xs"></textarea></div>
+      <div class="pt-2 flex justify-end gap-2">
+        <button type="button" onclick="document.getElementById('editPurModal').classList.add('hidden');" class="px-4 py-2 bg-nasa-bg border border-nasa-border rounded text-slate-400 hover:text-white">Cancel</button>
+        <button type="button" onclick="updatePur()" class="px-5 py-2 bg-nasa-cyan text-black font-bold rounded">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const toPHT = (s) => { try { const d = new Date(s); return d.toLocaleString('en-PH', {timeZone:'Asia/Manila', year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit', hour12:true}); } catch(e){ return s; } };
+async function submitPurchase() {
+  const payload = {
+    supplier: document.getElementById('purSupplier').value,
+    reference: document.getElementById('purReference').value,
+    amount_paid: parseFloat(document.getElementById('purPaid').value || 0),
+    notes: document.getElementById('purNotes').value,
+    items: []
+  };
+  try {
+    const r = await api.post('/purchases/api/create', payload);
+    if (r && r.message) { showToast(r.message, 'info'); location.reload(); }
+    else showToast(r.error || 'Error', 'error');
+  } catch (e) { showToast(e.message, 'error'); }
+}
+async function updatePur() {
+  const id = document.getElementById('editPurId').value;
+  const payload = {
+    reference: document.getElementById('editPurRef').value,
+    amount_paid: parseFloat(document.getElementById('editPurPaid').value || 0),
+    notes: document.getElementById('editPurNotes').value
+  };
+  try {
+    const r = await api.post('/purchases/api/' + id + '/update', payload);
+    if (r && r.message) { showToast(r.message, 'info'); location.reload(); }
+    else showToast(r.error || 'Error', 'error');
+  } catch (e) { showToast(e.message, 'error'); }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.lucide) lucide.createIcons();
+  const modal = document.getElementById('purchaseModal');
+  document.getElementById('btnAddPurchase').onclick = () => modal.classList.remove('hidden');
+  document.getElementById('purchaseClose').onclick = () => modal.classList.add('hidden');
+  (async () => {
+    const r = await api.get('/purchases/api/list');
+    const tbody = document.getElementById('purchaseTableBody');
+    (r.items || []).forEach(p => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td class="p-3">${toPHT(p.created_at)}</td><td class="p-3">${p.supplier_name||''}</td><td class="p-3 text-right">${money(p.total)}</td><td class="p-3 text-right">${money(p.amount_paid)}</td><td class="p-3 text-center space-x-1"><button class="px-2 py-1 bg-nasa-bg border border-nasa-border rounded text-nasa-cyan text-[10px] hover:bg-nasa-cyan hover:text-black" data-edit="${p.id}">Edit</button><button class="px-2 py-1 bg-nasa-bg border border-nasa-border rounded text-nasa-red text-[10px] hover:bg-nasa-red hover:text-white" data-delete="${p.id}">Delete</button></td>`;
+      tbody.appendChild(tr);
+    });
+    tbody.addEventListener('click', async (e) => {
+      if (e.target.dataset.edit) {
+        const pur = (r.items || []).find(x => x.id == e.target.dataset.edit);
+        if (!pur) return;
+        document.getElementById('editPurId').value = pur.id;
+        document.getElementById('editPurRef').value = pur.reference || '';
+        document.getElementById('editPurPaid').value = pur.amount_paid;
+        document.getElementById('editPurNotes').value = pur.notes || '';
+        document.getElementById('editPurModal').classList.remove('hidden');
+      }
+      if (e.target.dataset.delete) {
+        if (!(await showConfirm('Delete this purchase? Stock will be reversed.'))) return;
+        try {
+          await api.post('/purchases/api/' + e.target.dataset.delete + '/delete', {});
+          location.reload();
+        } catch (err) { showToast(err.message, 'error'); }
+      }
+    });
+  })();
+});
+</script>
+{% endblock %}

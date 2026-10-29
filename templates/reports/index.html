@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Reports - ORBIT-POS{% endblock %}
+{% block content %}
+<div class="space-y-4">
+  <div class="nasa-border bg-nasa-panel p-4 rounded-lg flex flex-col sm:flex-row gap-3 items-center">
+    <select id="repPeriod" class="bg-nasa-bg border border-nasa-border rounded px-3 py-2 font-mono text-xs text-slate-300"><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly" selected>Monthly</option><option value="custom">Custom</option></select>
+    <input type="date" id="repStart" class="bg-nasa-bg border border-nasa-border rounded px-3 py-2 font-mono text-xs text-slate-300" />
+    <input type="date" id="repEnd" class="bg-nasa-bg border border-nasa-border rounded px-3 py-2 font-mono text-xs text-slate-300" />
+    <button id="btnRepFilter" class="px-4 py-2 bg-nasa-cyan text-black font-mono font-bold text-xs rounded">Filter</button>
+    <button id="btnExportCsv" class="px-4 py-2 bg-nasa-bg border border-nasa-border rounded text-slate-300 font-mono text-xs">Export CSV</button>
+  </div>
+  <div class="nasa-border bg-nasa-panel rounded-lg overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left font-mono text-xs table-fixed">
+        <thead><tr class="bg-nasa-card text-slate-400 uppercase text-[10px] border-b border-nasa-border"><th class="p-3">Number</th><th class="p-3">Date</th><th class="p-3 text-right">Total</th><th class="p-3 text-right">Profit</th><th class="p-3">Status</th></tr></thead>
+        <tbody id="repTableBody" class="divide-y divide-nasa-border"></tbody>
+      </table>
+    </div>
+  </div>
+  <div id="repSummary" class="nasa-border bg-nasa-panel p-4 rounded font-mono text-xs text-slate-300"></div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/reports.js') }}"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{if(window.lucide)lucide.createIcons();});</script>
+{% endblock %}

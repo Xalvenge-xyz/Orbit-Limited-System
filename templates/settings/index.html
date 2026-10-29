@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Settings - ORBIT-POS{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+  <div class="nasa-border bg-nasa-panel p-3 rounded-lg">
+    <h3 class="font-orbitron font-bold text-white text-sm mb-2">Edit Profile</h3>
+    <div class="space-y-2">
+      <div><label class="block text-slate-400 uppercase text-[10px] mb-1">Full Name</label><input id="profName" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white text-xs" /></div>
+      <div><label class="block text-slate-400 uppercase text-[10px] mb-1">Email</label><input id="profEmail" type="email" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white text-xs" /></div>
+      <div><label class="block text-slate-400 uppercase text-[10px] mb-1">Mobile</label><input id="profMobile" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white text-xs" /></div>
+      <button type="button" onclick="saveProfile()" class="px-4 py-1.5 bg-nasa-cyan text-black font-bold text-xs rounded">Save Profile</button>
+    </div>
+  </div>
+  <div class="nasa-border bg-nasa-panel p-3 rounded-lg">
+    <h3 class="font-orbitron font-bold text-white text-sm mb-2">Change Password</h3>
+    <div class="space-y-2">
+      <div><label class="block text-slate-400 uppercase text-[10px] mb-1">Current Password</label><input type="password" id="curPw" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white text-xs" /></div>
+      <div><label class="block text-slate-400 uppercase text-[10px] mb-1">New Password</label><input type="password" id="newPw" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white text-xs" /></div>
+      <div><label class="block text-slate-400 uppercase text-[10px] mb-1">Confirm New Password</label><input type="password" id="confPw" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white text-xs" /></div>
+      <button type="button" onclick="changePw()" class="px-4 py-1.5 bg-nasa-cyan text-black font-bold text-xs rounded">Change Password</button>
+    </div>
+  </div>
+  <div class="nasa-border bg-nasa-panel p-3 rounded-lg">
+    <h3 class="font-orbitron font-bold text-white text-sm mb-2">Product Categories</h3>
+    <ul id="catList" class="font-mono text-xs text-slate-300 space-y-1 mb-2"></ul>
+    <form id="catForm" class="flex gap-2">
+      <input name="name" placeholder="New category" required class="flex-grow p-2 bg-nasa-bg border border-nasa-border rounded text-white font-mono text-xs" />
+      <button class="px-3 py-1.5 bg-nasa-cyan text-black font-mono font-bold text-xs rounded" type="submit">Add</button>
+    </form>
+  </div>
+  <div class="nasa-border bg-nasa-panel p-3 rounded-lg">
+    <h3 class="font-orbitron font-bold text-white text-sm mb-2">Budgets</h3>
+    <ul id="budgetList" class="font-mono text-xs text-slate-300 space-y-1 mb-2"></ul>
+    <form id="budgetForm" class="flex flex-col gap-2">
+      <input name="name" placeholder="Budget name" required class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white font-mono text-xs" />
+      <div class="flex gap-2">
+        <input type="number" step="0.01" name="amount" placeholder="Amount" class="flex-1 p-2 bg-nasa-bg border border-nasa-border rounded text-white font-mono text-xs" />
+        <input type="number" name="safe_spend_percent" placeholder="Safe %" value="30" class="w-20 p-2 bg-nasa-bg border border-nasa-border rounded text-white font-mono text-xs" />
+      </div>
+      <button class="px-3 py-1.5 bg-nasa-cyan text-black font-mono font-bold text-xs rounded self-start" type="submit">Add Budget</button>
+    </form>
+  </div>
+  <div class="nasa-border bg-nasa-panel p-3 rounded-lg border-nasa-red/40 lg:col-span-2">
+    <h3 class="font-orbitron font-bold text-nasa-red text-sm mb-2 flex items-center gap-2"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Danger Zone - Wipe All Data</h3>
+    <p class="text-[11px] font-mono text-slate-400 mb-2">Permanently deletes all business data and audit history. User accounts kept. Type <span class="text-nasa-red font-bold">WIPE</span> + password.</p>
+    <div class="flex flex-col sm:flex-row gap-2">
+      <input id="wipeConfirm" placeholder="Type WIPE" class="flex-1 p-2 bg-nasa-bg border border-nasa-red/40 rounded text-white font-mono text-xs" />
+      <input type="password" id="wipePw" placeholder="Your password" class="flex-1 p-2 bg-nasa-bg border border-nasa-red/40 rounded text-white font-mono text-xs" />
+      <button onclick="wipeData()" class="px-4 py-2 bg-nasa-red text-white font-bold text-xs rounded">Wipe All Data</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+async function loadProfile() {
+  const p = await api.get('/settings/api/profile');
+  document.getElementById('profName').value = p.full_name || '';
+  document.getElementById('profEmail').value = p.email || '';
+  document.getElementById('profMobile').value = p.mobile || '';
+}
+async function saveProfile() {
+  const payload = { full_name: document.getElementById('profName').value, email: document.getElementById('profEmail').value, mobile: document.getElementById('profMobile').value };
+  try { const r = await api.post('/settings/api/profile', payload); showToast(r.message || r.error, 'info'); } catch(e){ showToast(e.message, 'error'); }
+}
+async function changePw() {
+  const payload = { current_password: document.getElementById('curPw').value, new_password: document.getElementById('newPw').value, confirm_password: document.getElementById('confPw').value };
+  try { const r = await api.post('/settings/api/change-password', payload); showToast(r.message || r.error, 'info'); } catch(e){ showToast(e.message, 'error'); }
+}
+async function wipeData() {
+  if (!(await showConfirm('This will permanently delete ALL business data. Continue?'))) return;
+  const payload = { confirm: document.getElementById('wipeConfirm').value, password: document.getElementById('wipePw').value };
+  try { const r = await api.post('/settings/api/wipe-data', payload); showToast(r.message || r.error, 'info'); if (r.message) window.location.href = '/'; } catch(e){ showToast(e.message, 'error'); }
+}
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.lucide) lucide.createIcons();
+  await loadProfile();
+  const cats = await api.get('/settings/api/categories');
+  const ul = document.getElementById('catList');
+  (cats||[]).forEach(c => { const li=document.createElement('li'); li.textContent=c.name; ul.appendChild(li); });
+  document.getElementById('catForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const r = await api.post('/settings/api/categories', {name: e.target.name.value});
+    if (r && r.message) location.reload(); else showToast(r.error, 'error');
+  };
+  const budgets = await api.get('/settings/api/budgets');
+  const bul = document.getElementById('budgetList');
+  (budgets||[]).forEach(b => { const li=document.createElement('li'); li.textContent=`${b.name} - ${b.amount}`; bul.appendChild(li); });
+  document.getElementById('budgetForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const f=e.target;
+    const r = await api.post('/settings/api/budgets', {name:f.name.value, amount:parseFloat(f.amount.value||0), safe_spend_percent:parseInt(f.safe_spend_percent.value||30)});
+    if (r && r.message) location.reload(); else showToast(r.error, 'error');
+  };
+});
+</script>
+{% endblock %}

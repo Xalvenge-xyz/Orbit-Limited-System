@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}ORBIT-POS // Landing{% endblock %}
+{% block content %}
+<div class="flex items-center justify-center min-h-[70vh]">
+  <div class="text-center space-y-6 max-w-2xl">
+    <div class="w-20 h-20 mx-auto rounded-lg bg-nasa-bg border border-nasa-cyan/40 flex items-center justify-center glow-cyan">
+      <i data-lucide="orbit" class="w-10 h-10 text-nasa-cyan animate-spin" style="animation-duration:12s;"></i>
+    </div>
+    <h1 class="font-orbitron font-extrabold text-4xl tracking-wider text-white">ORBIT<span class="text-nasa-cyan">-POS</span></h1>
+    <p class="text-[11px] font-mono text-slate-400 flex items-center justify-center gap-1">
+      <span class="w-1.5 h-1.5 rounded-full bg-nasa-green animate-pulse"></span> STATION TELEMETRY ACTIVE
+    </p>
+    <p class="text-sm font-mono text-slate-300">Point-of-Sale & Telemetry System — inventory, sales, finance, debts, and analytics in one mission-control dashboard.</p>
+    <div class="flex justify-center gap-3">
+      <a href="/auth/login" class="px-6 py-3 bg-nasa-cyan text-black font-orbitron font-extrabold text-xs tracking-wider rounded glow-cyan hover:bg-white transition flex items-center gap-2">
+        <i data-lucide="log-in" class="w-4 h-4"></i> ENTER MISSION CONTROL
+      </a>
+    </div>
+    <p class="text-[10px] font-mono text-slate-500">Authorized personnel only. All activity is audited.</p>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>document.addEventListener('DOMContentLoaded',()=>{if(window.lucide)lucide.createIcons();});</script>
+{% endblock %}

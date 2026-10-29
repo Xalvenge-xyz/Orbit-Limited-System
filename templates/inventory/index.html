@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Inventory - ORBIT-POS{% endblock %}
+{% block content %}
+<div class="space-y-4">
+  <div class="nasa-border bg-nasa-panel p-4 rounded-lg flex items-center justify-between">
+    <h2 class="font-orbitron font-bold text-white text-base">Inventory Movements</h2>
+    <button id="btnAdjust" class="px-4 py-2 bg-nasa-cyan text-black font-mono font-bold text-xs rounded">Adjust Stock</button>
+  </div>
+  <div id="lowStockList" class="nasa-border bg-nasa-panel p-3 rounded font-mono text-xs text-slate-300"></div>
+  <div class="nasa-border bg-nasa-panel rounded-lg overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left font-mono text-xs table-fixed">
+        <thead><tr class="bg-nasa-card text-slate-400 uppercase text-[10px] border-b border-nasa-border">
+          <th class="p-3">Date</th><th class="p-3">Product</th><th class="p-3 text-right">Change</th><th class="p-3">Type</th><th class="p-3">Reason</th><th class="p-3">User</th>
+        </tr></thead>
+        <tbody id="movementTableBody" class="divide-y divide-nasa-border"></tbody>
+      </table>
+    </div>
+    <div id="movementPagination" class="p-3 flex gap-2"></div>
+  </div>
+</div>
+<div id="adjustModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+  <div class="nasa-border bg-nasa-panel rounded-lg shadow-2xl w-full max-w-md overflow-hidden font-mono text-xs">
+    <div class="p-4 bg-nasa-card border-b border-nasa-border text-white font-orbitron font-bold">Adjust Stock</div>
+    <form id="adjustForm" class="p-5 space-y-3">
+  <div><label class="block text-slate-400 uppercase mb-1">Product</label><select name="product_id" id="adjustProductSelect" required class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white"></select></div>
+      <div><label class="block text-slate-400 uppercase mb-1">Quantity Change (+/-)</label><input type="number" name="quantity_change" required class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+      <div><label class="block text-slate-400 uppercase mb-1">Movement Type</label><select name="movement_type" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white"><option value="adjustment">Adjustment</option><option value="opening">Opening</option><option value="return">Return</option></select></div>
+      <div><label class="block text-slate-400 uppercase mb-1">Reason</label><input name="reason" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+      <div class="pt-2 flex justify-end gap-2">
+        <button type="button" id="adjustClose" class="px-4 py-2 bg-nasa-bg border border-nasa-border rounded text-slate-400 hover:text-white">Cancel</button>
+        <button type="submit" class="px-5 py-2 bg-nasa-cyan text-black font-bold rounded">Apply</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/inventory.js') }}"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{if(window.lucide)lucide.createIcons();});</script>
+{% endblock %}

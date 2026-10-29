@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="{{ csrf_token() }}" />
+  <title>{% block title %}ORBIT-POS // NASA-Inspired Telemetry & Inventory System{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>tailwind.config = { darkMode:'class', theme:{ extend:{ colors:{ nasa:{ bg:'#080b11', panel:'#0e1420', card:'#141c2e', border:'#1f2d47', cyan:'#00f0ff', orange:'#ff6b00', amber:'#ffaa00', green:'#00ff88', red:'#ff2a6d' } }, fontFamily:{ orbitron:['Orbitron','sans-serif'], mono:['Share Tech Mono','monospace'], sans:['Inter','sans-serif'] } } } }</script>
+  <style>
+    body { background-color:#080b11; color:#c0cdf0; background-image: radial-gradient(circle at 50% 0%, rgba(0,240,255,0.05) 0%, transparent 70%), linear-gradient(to right, rgba(31,45,71,0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(31,45,71,0.15) 1px, transparent 1px); background-size:100% 100%,30px 30px,30px 30px; }
+    .nasa-border { border:1px solid #1f2d47; position:relative; }
+    .nasa-border::before { content:''; position:absolute; top:-1px; left:-1px; width:6px; height:6px; border-top:2px solid #00f0ff; border-left:2px solid #00f0ff; }
+    .nasa-border::after { content:''; position:absolute; bottom:-1px; right:-1px; width:6px; height:6px; border-bottom:2px solid #00f0ff; border-right:2px solid #00f0ff; }
+    .glow-cyan { box-shadow:0 0 15px rgba(0,240,255,0.25); }
+    .glow-orange { box-shadow:0 0 15px rgba(255,107,0,0.25); }
+    .custom-scrollbar::-webkit-scrollbar { width:5px; height:5px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background:#0e1420; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background:#1f2d47; border-radius:2px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background:#00f0ff; }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="font-sans min-h-screen flex flex-col selection:bg-nasa-cyan selection:text-black">
+  <!-- Confirm modal -->
+  <div id="confirm-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="nasa-border bg-nasa-panel rounded-lg shadow-2xl w-full max-w-sm overflow-hidden font-mono text-xs">
+      <div class="p-4 bg-nasa-card border-b border-nasa-border text-white font-orbitron font-bold flex items-center gap-2"><i data-lucide="alert-triangle" class="w-4 h-4 text-nasa-amber"></i> Confirm</div>
+      <div class="p-5">
+        <p id="confirm-message" class="text-slate-300 text-sm mb-4"></p>
+        <div class="flex justify-end gap-2">
+          <button id="confirm-cancel" class="px-4 py-2 bg-nasa-bg border border-nasa-border rounded text-slate-400 hover:text-white">Cancel</button>
+          <button id="confirm-ok" class="px-5 py-2 bg-nasa-red text-white font-bold rounded">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% if current_user.is_authenticated %}
+  <header class="bg-nasa-panel/90 backdrop-blur-md border-b border-nasa-border sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-lg bg-nasa-bg border border-nasa-cyan/40 flex items-center justify-center glow-cyan">
+            <i data-lucide="orbit" class="w-6 h-6 text-nasa-cyan animate-spin" style="animation-duration:12s;"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="font-orbitron font-extrabold text-lg tracking-wider text-white">ORBIT<span class="text-nasa-cyan">-POS</span></h1>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-nasa-cyan/10 text-nasa-cyan border border-nasa-cyan/30">v4.2-MISSION</span>
+            </div>
+            <p class="text-[11px] font-mono text-slate-400 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-nasa-green animate-pulse"></span> STATION TELEMETRY ACTIVE
+            </p>
+          </div>
+        </div>
+        <div class="hidden lg:flex items-center space-x-3">
+          <a href="/settings" class="px-3 py-1.5 rounded text-xs font-mono bg-nasa-orange/20 text-nasa-orange border border-nasa-orange/40 hover:bg-nasa-orange/30 transition flex items-center gap-1.5 glow-orange"><i data-lucide="settings" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">SETTINGS</span></a>
+          <div class="text-right font-mono text-xs hidden md:block">
+            <p id="hud-clock" class="text-white font-bold">00:00:00 UTC</p>
+            <p class="text-[10px] text-slate-400">STATION TIME</p>
+          </div>
+          <a href="/auth/logout" class="p-2 rounded bg-nasa-card border border-nasa-border hover:border-nasa-red text-slate-300 hover:text-nasa-red transition"><i data-lucide="log-out" class="w-4 h-4"></i></a>
+        </div>
+      </div>
+    </div>
+    <nav class="bg-nasa-bg/80 border-t border-nasa-border overflow-x-auto custom-scrollbar">
+      <div class="max-w-7xl mx-auto flex space-x-2 px-4 py-2 text-xs font-mono uppercase tracking-wider">
+        <a href="/dashboard" class="px-4 py-2 rounded {% if request.path.startswith('/dashboard') %}bg-nasa-cyan text-black font-bold{% else %}bg-nasa-card border border-nasa-border text-slate-300 hover:text-nasa-cyan hover:border-nasa-cyan{% endif %} flex items-center gap-2 transition"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> 01. Telemetry</a>
+        <a href="/pos" class="px-4 py-2 rounded {% if request.path.startswith('/pos') %}bg-nasa-cyan text-black font-bold{% else %}bg-nasa-card border border-nasa-border text-slate-300 hover:text-nasa-cyan hover:border-nasa-cyan{% endif %} flex items-center gap-2 transition"><i data-lucide="shopping-cart" class="w-4 h-4"></i> 02. POS</a>
+        <a href="/inventory" class="px-4 py-2 rounded {% if request.path.startswith('/inventory') %}bg-nasa-cyan text-black font-bold{% else %}bg-nasa-card border border-nasa-border text-slate-300 hover:text-nasa-cyan hover:border-nasa-cyan{% endif %} flex items-center gap-2 transition"><i data-lucide="boxes" class="w-4 h-4"></i> 03. Inventory</a>
+        <a href="/products" class="px-4 py-2 rounded {% if request.path.startswith('/products') %}bg-nasa-cyan text-black font-bold{% else %}bg-nasa-card border border-nasa-border text-slate-300 hover:text-nasa-cyan hover:border-nasa-cyan{% endif %} flex items-center gap-2 transition"><i data-lucide="package" class="w-4 h-4"></i> 04. Products</a>
+        <a href="/debts" class="px-4 py-2 rounded {% if request.path.startswith('/debts') %}bg-nasa-cyan text-black font-bold{% else %}bg-nasa-card border border-nasa-border text-slate-300 hover:text-nasa-cyan hover:border-nasa-cyan{% endif %} flex items-center gap-2 transition"><i data-lucide="receipt-text" class="w-4 h-4"></i> 05. Debts</a>
+        <a href="/sales" class="px-4 py-2 rounded {% if request.path.startswith('/sales') %}bg-nasa-cyan text-black font-bold{% else %}bg-nasa-card border border-nasa-border text-slate-300 hover:text-nasa-cyan hover:border-nasa-cyan{% endif %} flex items-center gap-2 transition"><i data-lucide="history" class="w-4 h-4"></i> 06. Sales</a>
+        <a href="/expenses" class="px-4 py-2 rounded {% if request.path.startswith('/expenses') %}bg-nasa-cyan text-black font-bold{% else %}bg-nasa-card border border-nasa-border text-slate-300 hover:text-nasa-cyan hover:border-nasa-cyan{% endif %} flex items-center gap-2 transition"><i data-lucide="wallet" class="w-4 h-4"></i> 07. Expenses</a>
+        <a href="/finance" class="px-4 py-2 rounded {% if request.path.startswith('/finance') %}bg-nasa-cyan text-black font-bold{% else %}bg-nasa-card border border-nasa-border text-slate-300 hover:text-nasa-cyan hover:border-nasa-cyan{% endif %} flex items-center gap-2 transition"><i data-lucide="coins" class="w-4 h-4"></i> 08. Finance</a>
+        <a href="/purchases" class="px-4 py-2 rounded {% if request.path.startswith('/purchases') %}bg-nasa-cyan text-black font-bold{% else %}bg-nasa-card border border-nasa-border text-slate-300 hover:text-nasa-cyan hover:border-nasa-cyan{% endif %} flex items-center gap-2 transition"><i data-lucide="truck" class="w-4 h-4"></i> 09. Purchases</a>
+        <a href="/employees" class="px-4 py-2 rounded {% if request.path.startswith('/employees') %}bg-nasa-cyan text-black font-bold{% else %}bg-nasa-card border border-nasa-border text-slate-300 hover:text-nasa-cyan hover:border-nasa-cyan{% endif %} flex items-center gap-2 transition"><i data-lucide="users" class="w-4 h-4"></i> 10. Employees</a>
+        <a href="/reports" class="px-4 py-2 rounded {% if request.path.startswith('/reports') %}bg-nasa-cyan text-black font-bold{% else %}bg-nasa-card border border-nasa-border text-slate-300 hover:text-nasa-cyan hover:border-nasa-cyan{% endif %} flex items-center gap-2 transition"><i data-lucide="file-text" class="w-4 h-4"></i> 11. Reports</a>
+      </div>
+    </nav>
+  </header>
+  {% endif %}
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}<div class="mb-4 space-y-2">{% for category, message in messages %}<div class="nasa-border bg-nasa-panel p-3 rounded font-mono text-xs {% if category=='danger' %}text-nasa-red{% elif category=='warning' %}text-nasa-amber{% elif category=='success' %}text-nasa-green{% else %}text-nasa-cyan{% endif %}">{{ message }}</div>{% endfor %}</div>{% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => { if (window.lucide) lucide.createIcons(); const clock=document.getElementById('hud-clock'); if(clock) setInterval(()=>{ clock.innerText = new Date().toLocaleTimeString('en-PH', {timeZone:'Asia/Manila', hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:false}) + ' PHT'; },1000); });
+    function formatPHP(v){ return '₱' + (parseFloat(v)||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    window.formatPHP = formatPHP;
+    function showToast(msg,type='info'){ const c=document.getElementById('toast-container'); if(!c) return; const t=document.createElement('div'); let bg='bg-nasa-panel border-nasa-cyan text-nasa-cyan'; if(type==='success') bg='bg-nasa-panel border-nasa-green text-nasa-green'; if(type==='error'||type==='warning') bg='bg-nasa-panel border-nasa-red text-nasa-red'; t.className=`nasa-border ${bg} px-4 py-3 rounded shadow-lg font-mono text-xs flex items-center gap-2 pointer-events-auto`; t.innerHTML=`<i data-lucide="info" class="w-4 h-4"></i><span>${msg}</span>`; c.appendChild(t); if(window.lucide) lucide.createIcons(); setTimeout(()=>{t.classList.add('opacity-0');setTimeout(()=>t.remove(),300);},3000); }
+    window.showConfirm = function(msg) {
+      return new Promise((resolve) => {
+        const modal = document.getElementById('confirm-modal');
+        document.getElementById('confirm-message').textContent = msg;
+        modal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+        const ok = document.getElementById('confirm-ok');
+        const cancel = document.getElementById('confirm-cancel');
+        const cleanup = () => { modal.classList.add('hidden'); ok.onclick = null; cancel.onclick = null; };
+        ok.onclick = () => { cleanup(); resolve(true); };
+        cancel.onclick = () => { cleanup(); resolve(false); };
+      });
+    };
+    async function exportJSONData(){ try { const r=await fetch('/dashboard/api/metrics'); const d=await r.json(); const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='orbit_export.json'; a.click(); } catch(e){ showToast('Export failed','error'); } }
+    window.exportJSONData = exportJSONData;
+  </script>
+  <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

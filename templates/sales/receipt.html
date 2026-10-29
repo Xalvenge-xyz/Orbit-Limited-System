@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Receipt - ORBIT-POS{% endblock %}
+{% block content %}
+<div class="flex justify-center">
+  <div class="nasa-border bg-nasa-panel rounded-lg shadow-2xl w-full max-w-md overflow-hidden font-mono text-xs p-6 print-area">
+    <div class="text-center mb-4">
+      <h2 class="font-orbitron font-extrabold text-lg tracking-wider text-white">ORBIT<span class="text-nasa-cyan">-POS</span></h2>
+      <p class="text-[10px] text-slate-400 uppercase">Official Receipt</p>
+    </div>
+    <div class="border-t border-b border-nasa-border py-3 mb-3 space-y-1 text-slate-300">
+      <div class="flex justify-between"><span>Receipt #</span><span class="text-white font-bold">{{ sale.sale_number }}</span></div>
+      <div class="flex justify-between"><span>Date</span><span>{{ sale.created_at|ph }}</span></div>
+      <div class="flex justify-between"><span>Cashier</span><span>{{ sale.user.full_name if sale.user else '' }}</span></div>
+      {% if sale.customer_name %}<div class="flex justify-between"><span>Customer</span><span>{{ sale.customer_name }}</span></div>{% endif %}
+    </div>
+    <table class="w-full text-left font-mono text-xs mb-3">
+      <thead><tr class="text-slate-400 uppercase text-[10px] border-b border-nasa-border"><th class="py-2">Item</th><th class="py-2 text-center">Qty</th><th class="py-2 text-right">Price</th><th class="py-2 text-right">Total</th></tr></thead>
+      <tbody class="divide-y divide-nasa-border">
+        {% for it in sale.items %}
+        <tr><td class="py-2 text-white">{{ it.product_name }}</td><td class="py-2 text-center">{{ it.quantity }}</td><td class="py-2 text-right">{{ it.unit_price }}</td><td class="py-2 text-right">{{ it.line_total }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <div class="border-t border-nasa-border pt-3 space-y-1">
+      <div class="flex justify-between"><span>Subtotal</span><span class="font-bold">{{ sale.subtotal }}</span></div>
+      <div class="flex justify-between text-base font-orbitron font-bold text-white pt-2 border-t border-nasa-border"><span>Total</span><span class="text-nasa-cyan">{{ sale.total }}</span></div>
+      {% if sale.cash_tendered is not none %}<div class="flex justify-between"><span>Cash</span><span>{{ sale.cash_tendered }}</span></div>{% endif %}
+      {% if sale.change_given is not none %}<div class="flex justify-between"><span>Change</span><span class="text-nasa-green font-bold">{{ sale.change_given }}</span></div>{% endif %}
+    </div>
+    <div class="mt-6 flex justify-center gap-2 print:hidden">
+      <button onclick="window.print()" class="px-5 py-2 bg-nasa-cyan text-black font-bold rounded">Print</button>
+      <a href="/sales" class="px-5 py-2 bg-nasa-bg border border-nasa-border rounded text-slate-300">Back</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>document.addEventListener('DOMContentLoaded',()=>{if(window.lucide)lucide.createIcons();});</script>
+{% endblock %}
+{% block extra_css %}
+<style>
+  @media print {
+    body { background: white !important; color: black !important; }
+    header, nav, #toast-container { display: none !important; }
+    .print\\:hidden { display: none !important; }
+    .print-area { box-shadow: none !important; border: 1px solid #000 !important; background: white !important; color: black !important; max-width: 100% !important; }
+    .print-area * { color: black !important; }
+    .nasa-border::before, .nasa-border::after { display: none !important; }
+  }
+</style>
+{% endblock %}

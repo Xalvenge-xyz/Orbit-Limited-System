@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Product Depot - ORBIT-POS{% endblock %}
+{% block content %}
+<div class="space-y-4">
+  <div class="nasa-border bg-nasa-panel p-4 rounded-lg flex flex-col sm:flex-row gap-3 items-center">
+    <input type="text" id="productSearch" placeholder="Search name or SKU..." class="flex-grow pl-3 pr-4 py-2 bg-nasa-bg border border-nasa-border rounded font-mono text-xs text-white focus:border-nasa-cyan focus:outline-none" />
+    <select id="productCategory" class="bg-nasa-bg border border-nasa-border rounded px-3 py-2 font-mono text-xs text-slate-300"><option value="">All categories</option></select>
+    <select id="productStatus" class="bg-nasa-bg border border-nasa-border rounded px-3 py-2 font-mono text-xs text-slate-300"><option value="">All status</option><option value="active">Active</option><option value="archived">Archived</option></select>
+    <select id="productStock" class="bg-nasa-bg border border-nasa-border rounded px-3 py-2 font-mono text-xs text-slate-300"><option value="">All stock</option><option value="low">Low</option><option value="out">Out</option></select>
+    <button id="btnAddProduct" onclick="document.getElementById('productModal').classList.remove('hidden'); document.getElementById('productModalTitle').textContent='Add Product'; document.getElementById('productForm').reset(); const _h=document.querySelector('input[name=&quot;id&quot;]'); if(_h)_h.value='';" class="px-4 py-2 bg-nasa-cyan text-black font-mono font-bold text-xs rounded">Add Product</button>
+  </div>
+  <div class="nasa-border bg-nasa-panel rounded-lg overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left font-mono text-xs table-fixed">
+        <thead><tr class="bg-nasa-card text-slate-400 uppercase text-[10px] border-b border-nasa-border">
+          <th class="p-3">Name</th><th class="p-3">SKU</th><th class="p-3">Category</th><th class="p-3 text-right">Cost</th><th class="p-3 text-right">Price</th><th class="p-3 text-right">Min Price</th><th class="p-3 text-center">Stock</th><th class="p-3">Status</th><th class="p-3 text-center">Actions</th>
+        </tr></thead>
+        <tbody id="productTableBody" class="divide-y divide-nasa-border"></tbody>
+      </table>
+    </div>
+    <div id="productPagination" class="p-3 flex gap-2"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="productModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+  <div class="nasa-border bg-nasa-panel rounded-lg shadow-2xl w-full max-w-lg overflow-hidden font-mono text-xs">
+    <div class="p-4 bg-nasa-card border-b border-nasa-border flex justify-between items-center text-white font-orbitron font-bold">
+      <span id="productModalTitle">Add Product</span>
+      <button id="productModalClose" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+    </div>
+    <form id="productForm" class="p-5 space-y-3">
+      <input type="hidden" name="id" />
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-slate-400 uppercase mb-1">Name</label><input name="name" required class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+        <div><label class="block text-slate-400 uppercase mb-1">SKU</label><input name="sku" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-slate-400 uppercase mb-1">Category</label><input name="category" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" placeholder="e.g. Beverages" /></div>
+        <div><label class="block text-slate-400 uppercase mb-1">Supplier</label><select name="supplier_id" id="productSupplierSelect" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white"></select></div>
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        <div><label class="block text-slate-400 uppercase mb-1">Cost</label><input type="number" step="0.01" name="cost" required class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+        <div><label class="block text-slate-400 uppercase mb-1">Price</label><input type="number" step="0.01" name="price" required class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+        <div><label class="block text-slate-400 uppercase mb-1">Min Price</label><input type="number" step="0.01" name="min_price" required class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="block text-slate-400 uppercase mb-1">Target Margin</label><input type="number" step="0.01" name="target_gross_margin" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+        <div><label class="block text-slate-400 uppercase mb-1">Stock</label><input type="number" name="stock" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+      </div>
+      <div><label class="block text-slate-400 uppercase mb-1">Reorder Level</label><input type="number" name="reorder_level" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded text-white" /></div>
+      <div class="pt-2 flex justify-end gap-2">
+        <button type="button" id="productModalClose" onclick="document.getElementById('productModal').classList.add('hidden');" class="px-4 py-2 bg-nasa-bg border border-nasa-border rounded text-slate-400 hover:text-white">Cancel</button>
+        <button type="button" onclick="saveProduct()" class="px-5 py-2 bg-nasa-cyan text-black font-bold rounded">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/products.js') }}"></script>
+<script>
+async function saveProduct() {
+  const f = document.getElementById('productForm');
+  let payload;
+  try {
+    payload = {
+      name: f.name.value, sku: f.sku.value,
+      category: f.category.value, supplier_id: f.supplier_id.value,
+      cost: parseFloat(f.cost.value), price: parseFloat(f.price.value), min_price: parseFloat(f.min_price.value),
+      target_gross_margin: f.target_gross_margin.value || null,
+      stock: parseInt(f.stock.value||0), reorder_level: parseInt(f.reorder_level.value||3)
+    };
+  } catch (e) { showToast('Form error: ' + e.message, 'error'); return; }
+  const idv = (f.querySelector('input[name="id"]')||{}).value;
+  try {
+    const r = await api.post(idv ? '/products/api/' + idv + '/update' : '/products/api/create', payload);
+    if (r && r.message) { document.getElementById('productModal').classList.add('hidden'); location.reload(); }
+    else showToast(r.error || 'Error', 'error');
+  } catch (e) { showToast(e.message, 'error'); }
+}
+</script>
+<script>document.addEventListener('DOMContentLoaded',()=>{if(window.lucide)lucide.createIcons();});</script>
+{% endblock %}

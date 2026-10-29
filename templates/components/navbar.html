@@ -1,0 +1,11 @@
+<header class="navbar">
+  <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">☰</button>
+  <div class="navbar-title">{% block page_title %}ORBIT{% endblock %}</div>
+  <div class="navbar-actions">
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
+    <div class="user-chip">
+      <span class="user-name">{{ current_user.full_name if current_user.is_authenticated else 'Guest' }}</span>
+      <span class="user-role">{{ current_user.role_name() if current_user.is_authenticated else '' }}</span>
+    </div>
+  </div>
+</header>

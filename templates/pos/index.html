@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}POS Terminal - ORBIT-POS{% endblock %}
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+  <div class="lg:col-span-7 xl:col-span-8 space-y-4">
+    <div class="nasa-border bg-nasa-panel p-4 rounded-lg flex flex-col sm:flex-row gap-3">
+      <div class="relative flex-grow">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-3 text-slate-500"></i>
+        <input type="text" id="posSearch" placeholder="Search catalog by name or SKU..." class="w-full pl-9 pr-4 py-2 bg-nasa-bg border border-nasa-border rounded font-mono text-xs text-white focus:border-nasa-cyan focus:outline-none" />
+      </div>
+    </div>
+    <div id="posResults" class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 max-h-[calc(100vh-270px)] overflow-y-auto pr-1 custom-scrollbar"></div>
+  </div>
+  <div class="lg:col-span-5 xl:col-span-4 self-start">
+    <div class="nasa-border bg-nasa-panel rounded-lg flex flex-col sticky top-24">
+      <div class="p-4 border-b border-nasa-border flex justify-between items-center bg-nasa-card/80">
+        <h3 class="font-orbitron font-bold text-white text-xs tracking-wider flex items-center gap-2"><i data-lucide="shopping-bag" class="w-4 h-4 text-nasa-cyan"></i> Checkout HUD Cart</h3>
+        <button id="btnClearCart" class="text-xs font-mono text-nasa-red hover:text-white transition flex items-center gap-1"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear All</button>
+      </div>
+      <div id="cartItems" class="p-4 space-y-3 flex-grow max-h-[340px] overflow-y-auto custom-scrollbar"></div>
+      <div class="p-4 border-t border-nasa-border bg-nasa-card/50 space-y-3 font-mono text-xs">
+        <div class="flex justify-between text-base font-orbitron font-bold text-white pt-2 border-t border-nasa-border">
+          <span>Grand Total:</span>
+          <span id="cartTotal" class="text-nasa-cyan">₱0.00</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] text-slate-400 uppercase mb-1">Payment Method</label>
+            <select id="paymentMethod" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded font-mono text-xs text-white">
+              <option value="cash">Cash</option><option value="card">Card</option><option value="gcash">GCash</option><option value="bank">Bank</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] text-slate-400 uppercase mb-1">Cash Received</label>
+            <input type="number" step="0.01" id="cashTendered" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded font-mono text-sm font-bold text-white" />
+          </div>
+        </div>
+        <div>
+          <input type="text" id="customerName" placeholder="Customer / Suki Name (Optional)" class="w-full p-2 bg-nasa-bg border border-nasa-border rounded font-mono text-xs text-white" />
+        </div>
+        <button id="btnCheckout" onclick="if(window.pos)window.pos.checkout();else showToast('POS not loaded','error');" class="w-full py-3 bg-nasa-cyan text-black font-orbitron font-extrabold text-xs tracking-wider rounded glow-cyan hover:bg-white transition flex items-center justify-center gap-2"><i data-lucide="check-circle" class="w-4 h-4"></i> EXECUTE TRANSACTION</button>
+        <div id="checkoutResult" class="hidden"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/pos.js') }}?v=3"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.lucide) lucide.createIcons();
+  // Fallback: ensure products render even if pos.js init missed
+  const res = document.getElementById('posResults');
+  if (res && res.childElementCount === 0) {
+    try {
+      const data = await api.get('/pos/api/search?q=');
+      res.innerHTML = '';
+      data.forEach(p => {
+        const available = p.available !== false && (p.stock > 0);
+        const div = document.createElement('div');
+        div.className = 'nasa-border bg-nasa-panel p-3 rounded flex flex-col justify-between ' + (available ? 'cursor-pointer hover:border-nasa-cyan transition' : 'opacity-40 cursor-not-allowed');
+        div.innerHTML = `<div><span class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-nasa-card text-nasa-cyan border border-nasa-border">${p.sku||''}</span><h4 class="font-bold text-white text-xs mt-2">${p.name}</h4></div><div class="mt-2 font-mono text-[10px]"><p class="text-nasa-cyan">${formatPHP(p.price)}</p><p class="${available?'text-slate-400':'text-nasa-red'}">${available ? 'stock ' + p.stock : 'OUT OF STOCK'}</p></div>`;
+        if (available) div.addEventListener('click', () => { if (window.pos) window.pos.addToCart(p); });
+        res.appendChild(div);
+      });
+      if (window.lucide) lucide.createIcons();
+    } catch (e) { console.error('fallback pos load failed', e); }
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+/* component helpers */
+.pagination { display: flex; gap: 6px; margin-top: 10px; }
+.pagination button { padding: 4px 10px; }
+.empty-state { text-align: center; padding: 24px; color: var(--text-muted); }
+.receipt { max-width: 420px; margin: 0 auto; }
+.totals { margin-top: 12px; }
+.pos-layout { display: grid; grid-template-columns: 1fr 380px; gap: 12px; }
+.pos-catalog, .pos-cart { display: flex; flex-direction: column; gap: 10px; }
+.pos-results { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 8px; max-height: 70vh; overflow: auto; }
+.pos-item { background: var(--card-surface); border: 1px solid var(--card-border); border-radius: 8px; padding: 10px; cursor: pointer; }
+.pos-item:hover { border-color: var(--primary-accent); }
+.cart-items { display: flex; flex-direction: column; gap: 6px; max-height: 40vh; overflow: auto; }
+.cart-row { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; background: var(--card-surface); padding: 6px; border-radius: 6px; }
+.cart-row.below-min { border: 1px solid var(--danger); color: var(--danger); }
+.cart-total { font-size: 18px; margin: 8px 0; }
+@media (max-width: 900px) { .pos-layout { grid-template-columns: 1fr; } }

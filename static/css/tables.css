@@ -1,0 +1,12 @@
+/* tables */
+.table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.table th, .table td { padding: 8px 10px; border-bottom: 1px solid var(--card-border); text-align: left; }
+.table th { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+.table tbody tr:hover { background: var(--card-surface); }
+.status-paid { color: var(--profit); }
+.status-unpaid { color: var(--danger); }
+.status-partial { color: var(--warning); }
+/* forms extra */
+textarea { background: var(--input-bg); color: var(--text-primary); border: 1px solid var(--input-border); border-radius: 6px; padding: 8px; width: 100%; font-family: var(--font-sans); }
+/* themes extra */
+[data-theme="light"] .card { backdrop-filter: none; }

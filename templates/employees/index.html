@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Employees - ORBIT-POS{% endblock %}
+{% block content %}
+<div class="nasa-border bg-nasa-panel rounded-lg overflow-hidden">
+  <div class="p-4 border-b border-nasa-border text-white font-orbitron font-bold text-xs">Employees & Accounts</div>
+  <div class="overflow-x-auto">
+    <table class="w-full text-left font-mono text-xs table-fixed">
+      <thead><tr class="bg-nasa-card text-slate-400 uppercase text-[10px] border-b border-nasa-border"><th class="p-3">Name</th><th class="p-3">Email</th><th class="p-3">Role</th><th class="p-3">Status</th><th class="p-3 text-center">Actions</th></tr></thead>
+      <tbody id="empTableBody" class="divide-y divide-nasa-border"></tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/employees.js') }}"></script>
+<script>document.addEventListener('DOMContentLoaded',()=>{if(window.lucide)lucide.createIcons();});</script>
+{% endblock %}
