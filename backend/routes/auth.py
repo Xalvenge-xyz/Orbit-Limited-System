@@ -125,10 +125,10 @@ def forgot_password():
             session["otp_expires"] = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
             # send email
             try:
-                from backend.extensions import mail
                 from flask import current_app
-                if not current_app.config.get("MAIL_USERNAME") or not current_app.config.get("MAIL_SERVER"):
+                if not current_app.config.get("MAIL_ENABLED") or not current_app.config.get("MAIL_USERNAME") or not current_app.config.get("MAIL_SERVER"):
                     raise RuntimeError("mail not configured")
+                from backend.extensions import mail
                 from flask_mail import Message
                 msg = Message(
                     subject="ORBIT-POS Password Reset OTP",
