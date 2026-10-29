@@ -129,9 +129,11 @@ def forgot_password():
                 otp_sent = False
                 # Try Resend HTTP API (works on Render free tier, no SMTP needed)
                 resend_key = current_app.config.get("RESEND_API_KEY") or os.environ.get("RESEND_API_KEY")
+                print(f"[ORBIT-POS] Resend key present: {bool(resend_key)}", flush=True)
                 if resend_key:
                     import json as _json
                     import urllib.request as _urllib
+                    import urllib.error as _urlerr
                     payload = _json.dumps({
                         "from": "onboarding@resend.dev",
                         "to": [email],
@@ -143,9 +145,17 @@ def forgot_password():
                         data=payload,
                         headers={"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"},
                     )
-                    with _urllib.urlopen(req, timeout=10) as resp:
-                        if resp.status in (200, 201):
-                            otp_sent = True
+                    try:
+                        with _urllib.urlopen(req, timeout=10) as resp:
+                            body = resp.read().decode()
+                            print(f"[ORBIT-POS] Resend response: {resp.status} {body}", flush=True)
+                            if resp.status in (200, 201):
+                                otp_sent = True
+                    except _urlerr.HTTPError as he:
+                        err_body = he.read().decode() if he.fp else ""
+                        print(f"[ORBIT-POS] Resend HTTP error: {he.code} {err_body}", flush=True)
+                    except Exception as he:
+                        print(f"[ORBIT-POS] Resend request failed: {he}", flush=True)
                 # Fallback: SMTP (only if explicitly enabled and not on blocked network)
                 elif current_app.config.get("MAIL_ENABLED") and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_SERVER"):
                     from backend.extensions import mail
