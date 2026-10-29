@@ -133,7 +133,7 @@ def forgot_password():
                     import json as _json
                     import urllib.request as _urllib
                     payload = _json.dumps({
-                        "from": current_app.config.get("MAIL_DEFAULT_SENDER") or "onboarding@resend.dev",
+                        "from": "onboarding@resend.dev",
                         "to": [email],
                         "subject": "ORBIT-POS Password Reset OTP",
                         "text": f"Your ORBIT-POS password reset code is: {otp}\n\nThis code expires in 10 minutes. If you did not request this, ignore this email.",
