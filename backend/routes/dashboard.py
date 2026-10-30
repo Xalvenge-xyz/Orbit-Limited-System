@@ -6,7 +6,7 @@ from backend.services.finance_service import FinanceService
 from backend.services.notification_service import NotificationService
 from backend.models.product import Product, Category
 from backend.models.sale import Sale
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, date, timezone
 from decimal import Decimal
 from collections import defaultdict
 
@@ -27,7 +27,8 @@ def api_metrics():
     if not current_user.has_permission("view_dashboard"):
         return jsonify({"error": "Permission denied"}), 403
     period = request.args.get("period", "monthly")
-    end_dt = datetime.now()
+    # Use naive UTC datetimes to match stored DB values
+    end_dt = datetime.now(timezone.utc).replace(tzinfo=None)
     start_dt = end_dt - timedelta(days=30)
     totals = ProfitService.period_totals(start_dt, end_dt)
     inv_val = FinanceService.inventory_value()
@@ -76,7 +77,7 @@ def api_metrics():
     unpaid_debt = totals["payables"] + totals["receivables"]
 
     return jsonify({
-        "today_sales": float(sum((s.total for s in Sale.query.filter(Sale.created_at >= datetime.combine(date.today(), datetime.min.time())).all() if s.status == "completed"), Decimal(0))),
+        "today_sales": float(sum((s.total for s in Sale.query.filter(Sale.created_at >= datetime.combine(datetime.now(timezone.utc).date(), datetime.min.time())).all() if s.status == "completed"), Decimal(0))),
         "gross_sales": float(totals["gross_sales"]),
         "gross_profit": float(totals["gross_profit"]),
         "net_profit": float(totals["net_profit"]),
