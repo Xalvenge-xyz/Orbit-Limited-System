@@ -125,78 +125,20 @@ def forgot_password():
             session["otp_expires"] = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
             # send email
             try:
-                from flask import current_app
-                otp_sent = False
-                # Try SendGrid HTTP API first (free 100/day, sends to ANY email with single sender verification)
-                sendgrid_key = current_app.config.get("SENDGRID_API_KEY") or os.environ.get("SENDGRID_API_KEY")
-                print(f"[ORBIT-POS] SendGrid key present: {bool(sendgrid_key)}", flush=True)
-                if sendgrid_key:
-                    try:
-                        import json as _json
-                        import urllib.request as _urllib
-                        import urllib.error as _urlerr
-                        sender = current_app.config.get("MAIL_DEFAULT_SENDER") or "noreply@orbitpos.local"
-                        payload = _json.dumps({
-                            "personalizations": [{"to": [{"email": email}]}],
-                            "from": {"email": sender},
-                            "subject": "ORBIT-POS Password Reset OTP",
-                            "content": [{"type": "text/plain", "value": f"Your ORBIT-POS password reset code is: {otp}\n\nThis code expires in 10 minutes. If you did not request this, ignore this email."}],
-                        }).encode()
-                        req = _urllib.Request(
-                            "https://api.sendgrid.com/v3/mail/send",
-                            data=payload,
-                            headers={"Authorization": f"Bearer {sendgrid_key}", "Content-Type": "application/json"},
-                        )
-                        with _urllib.urlopen(req, timeout=10) as resp:
-                            body = resp.read().decode()
-                            print(f"[ORBIT-POS] SendGrid response: {resp.status} {body}", flush=True)
-                            if resp.status in (200, 201, 202):
-                                otp_sent = True
-                    except _urlerr.HTTPError as he:
-                        err_body = he.read().decode() if he.fp else ""
-                        print(f"[ORBIT-POS] SendGrid HTTP error: {he.code} {err_body}", flush=True)
-                    except Exception as he:
-                        print(f"[ORBIT-POS] SendGrid request failed: {he}", flush=True)
-                # Fallback: Resend (free, but only sends to account owner email without domain)
-                elif current_app.config.get("RESEND_API_KEY") or os.environ.get("RESEND_API_KEY"):
-                    resend_key = current_app.config.get("RESEND_API_KEY") or os.environ.get("RESEND_API_KEY")
-                    try:
-                        import resend as _resend
-                        _resend.api_key = resend_key
-                        params = {
-                            "from": "onboarding@resend.dev",
-                            "to": [email],
-                            "subject": "ORBIT-POS Password Reset OTP",
-                            "html": f"<p>Your ORBIT-POS password reset code is: <strong>{otp}</strong></p><p>This code expires in 10 minutes. If you did not request this, ignore this email.</p>",
-                        }
-                        resp = _resend.Emails.send(params)
-                        print(f"[ORBIT-POS] Resend response: {resp}", flush=True)
-                        otp_sent = True
-                    except Exception as he:
-                        print(f"[ORBIT-POS] Resend failed: {he}", flush=True)
-                # Fallback: SMTP (only if explicitly enabled)
-                elif current_app.config.get("MAIL_ENABLED") and current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_SERVER"):
-                    from backend.extensions import mail
-                    from flask_mail import Message
-                    msg = Message(
-                        subject="ORBIT-POS Password Reset OTP",
-                        sender=app_config_mail_sender(),
-                        recipients=[email],
-                    )
-                    msg.body = f"Your ORBIT-POS password reset code is: {otp}\n\nThis code expires in 10 minutes. If you did not request this, ignore this email."
-                    mail.send(msg)
-                    otp_sent = True
-
-                if otp_sent:
-                    flash("A 6-digit OTP has been sent to your email.", "success")
-                    print(f"[ORBIT-POS] OTP sent to {email}: {otp}", flush=True)
-                else:
-                    flash(f"Email unavailable. Dev OTP: {otp}", "warning")
-                    print(f"[ORBIT-POS] OTP for {email}: {otp}", flush=True)
+                from backend.extensions import mail
+                from flask_mail import Message
+                msg = Message(
+                    subject="ORBIT-POS Password Reset OTP",
+                    sender=app_config_mail_sender(),
+                    recipients=[email],
+                )
+                msg.body = f"Your ORBIT-POS password reset code is: {otp}\n\nThis code expires in 10 minutes. If you did not request this, ignore this email."
+                mail.send(msg)
+                flash("A 6-digit OTP has been sent to your email.", "success")
+                print(f"[ORBIT-POS] OTP sent to {email}: {otp}", flush=True)
             except Exception as e:
-                # dev fallback: show OTP on screen if email unavailable
-                flash(f"Email unavailable. Dev OTP: {otp}", "warning")
-                print(f"[ORBIT-POS] Email failed ({e}); OTP for {email}: {otp}", flush=True)
+                # dev fallback: show OTP in flash (remove in production)
+                flash(f"Email not configured. Dev OTP: {otp}", "warning")
         else:
             flash("If the account exists, a reset code has been sent.", "info")
         return redirect(url_for("auth.reset_password"))

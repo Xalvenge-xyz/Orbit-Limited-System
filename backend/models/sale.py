@@ -17,7 +17,7 @@ class Sale(db.Model):
     payment_method = db.Column(db.String(30), nullable=False, default="cash")
     cash_tendered = db.Column(db.Numeric(12, 2), nullable=True)
     change_given = db.Column(db.Numeric(12, 2), nullable=True)
-    status = db.Column(db.String(20), default="completed", nullable=False, index=True)  # completed/voided/refunded
+    status = db.Column(db.String(20), default="completed", nullable=False)  # completed/voided/refunded
     idempotency_key = db.Column(db.String(80), unique=True, nullable=True, index=True)
     notes = db.Column(db.String(255))
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), index=True)
