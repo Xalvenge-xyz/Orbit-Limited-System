@@ -16,6 +16,8 @@ def _engine_options(url):
     opts = {
         "pool_pre_ping": True,
         "pool_recycle": 3600,
+        "pool_size": 10,
+        "max_overflow": 20,
     }
     # TiDB Cloud requires TLS; enable it (verify off to avoid bundling CA cert)
     if url and "tidbcloud.com" in url:
