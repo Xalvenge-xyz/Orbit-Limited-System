@@ -50,9 +50,12 @@ def api_metrics():
         day = (end_dt.date() - timedelta(days=i)).isoformat()
         last_days.append({"date": day, "revenue": float(sales_by_date.get(day, Decimal("0")))})
 
+    # Load products once for inventory calculations
+    products = Product.query.filter_by(status="active").all()
+
     # inventory by category
     inv_by_cat = defaultdict(lambda: 0)
-    for p in Product.query.filter_by(status="active").all():
+    for p in products:
         cat = p.category.name if p.category else "Uncategorized"
         inv_by_cat[cat] += p.stock
     inv_by_category = [{"category": k, "stock": v} for k, v in inv_by_cat.items()]
@@ -63,7 +66,7 @@ def api_metrics():
     est_gross_min = Decimal("0")
     est_net_max = Decimal("0")
     est_net_min = Decimal("0")
-    for p in Product.query.filter_by(status="active").all():
+    for p in products:
         est_capital += Decimal(str(p.stock)) * Decimal(str(p.cost))
         est_gross_max += Decimal(str(p.stock)) * Decimal(str(p.price))
         est_gross_min += Decimal(str(p.stock)) * Decimal(str(p.min_price))
@@ -73,7 +76,7 @@ def api_metrics():
     roi = 0.0
     if capital and capital != 0:
         roi = float((totals["net_profit"] / capital) * 100)
-    total_stock = sum((p.stock for p in Product.query.filter_by(status="active").all()), 0)
+    total_stock = sum((p.stock for p in products), 0)
     unpaid_debt = totals["payables"] + totals["receivables"]
 
     return jsonify({
