@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, redirect, request
 from config import Config
 from backend.extensions import db, migrate, login_manager, csrf
 
@@ -86,6 +86,12 @@ def to_pht(dt):
 # register after app creation
 app = create_app()
 app.jinja_env.filters['ph'] = to_pht
+
+@app.after_request
+def _cache_static(response):
+    if request.path.startswith("/static/"):
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
 
 @app.route("/")
 def landing():
