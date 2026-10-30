@@ -64,11 +64,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault();
     const f = e.target;
     const payload = {
-      name: f.name.value, sku: f.sku.value,
-      category: f.category.value, supplier_id: f.supplier_id.value,
-      cost: parseFloat(f.cost.value), price: parseFloat(f.price.value), min_price: parseFloat(f.min_price.value),
-      target_gross_margin: f.target_gross_margin.value || null,
-      stock: parseInt(f.stock.value||0), reorder_level: parseInt(f.reorder_level.value||3)
+      name: f.elements.name.value, sku: f.elements.sku.value,
+      category: f.elements.category.value, supplier_id: f.elements.supplier_id.value,
+      cost: parseFloat(f.elements.cost.value), price: parseFloat(f.elements.price.value), min_price: parseFloat(f.elements.min_price.value),
+      target_gross_margin: f.elements.target_gross_margin.value || null,
+      stock: parseInt(f.elements.stock.value||0), reorder_level: parseInt(f.elements.reorder_level.value||3)
     };
     const id = f.querySelector('input[name="id"]').value;
     try {
