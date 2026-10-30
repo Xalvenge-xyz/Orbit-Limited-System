@@ -29,7 +29,7 @@ class Product(db.Model):
     stock = db.Column(db.Integer, nullable=False, default=0)
     reorder_level = db.Column(db.Integer, nullable=False, default=3)
 
-    status = db.Column(db.String(20), default="active", nullable=False)  # active/archived
+    status = db.Column(db.String(20), default="active", nullable=False, index=True)  # active/archived
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 

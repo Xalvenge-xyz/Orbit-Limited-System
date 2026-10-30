@@ -8,7 +8,7 @@ from backend.models.product import Product, Category
 from backend.models.sale import Sale
 from datetime import datetime, timedelta, date
 from decimal import Decimal
-from collections import defaultdict
+from sqlalchemy.orm import joinedload
 
 dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
@@ -35,7 +35,8 @@ def api_metrics():
     low_stock = NotificationService.low_stock_products()
 
     # items sold + sales by date
-    sales = Sale.query.filter(Sale.status == "completed", Sale.created_at >= start_dt, Sale.created_at <= end_dt).all()
+    from sqlalchemy.orm import joinedload
+    sales = Sale.query.options(joinedload(Sale.items)).filter(Sale.status == "completed", Sale.created_at >= start_dt, Sale.created_at <= end_dt).all()
     items_sold = sum(sum((si.quantity for si in s.items), 0) for s in sales)
     sales_by_date = defaultdict(lambda: Decimal("0"))
     for s in sales:
@@ -49,9 +50,12 @@ def api_metrics():
         day = (end_dt.date() - timedelta(days=i)).isoformat()
         last_days.append({"date": day, "revenue": float(sales_by_date.get(day, Decimal("0")))})
 
+    # load active products once with category
+    active_products = Product.query.options(joinedload(Product.category)).filter_by(status="active").all()
+
     # inventory by category
     inv_by_cat = defaultdict(lambda: 0)
-    for p in Product.query.filter_by(status="active").all():
+    for p in active_products:
         cat = p.category.name if p.category else "Uncategorized"
         inv_by_cat[cat] += p.stock
     inv_by_category = [{"category": k, "stock": v} for k, v in inv_by_cat.items()]
@@ -62,7 +66,7 @@ def api_metrics():
     est_gross_min = Decimal("0")
     est_net_max = Decimal("0")
     est_net_min = Decimal("0")
-    for p in Product.query.filter_by(status="active").all():
+    for p in active_products:
         est_capital += Decimal(str(p.stock)) * Decimal(str(p.cost))
         est_gross_max += Decimal(str(p.stock)) * Decimal(str(p.price))
         est_gross_min += Decimal(str(p.stock)) * Decimal(str(p.min_price))
@@ -72,11 +76,11 @@ def api_metrics():
     roi = 0.0
     if capital and capital != 0:
         roi = float((totals["net_profit"] / capital) * 100)
-    total_stock = sum((p.stock for p in Product.query.filter_by(status="active").all()), 0)
+    total_stock = sum((p.stock for p in active_products), 0)
     unpaid_debt = totals["payables"] + totals["receivables"]
 
     return jsonify({
-        "today_sales": float(sum((s.total for s in Sale.query.filter(Sale.created_at >= datetime.combine(date.today(), datetime.min.time())).all() if s.status == "completed"), Decimal(0))),
+        "today_sales": float(sum((s.total for s in sales if s.status == "completed" and s.created_at and s.created_at.date() == date.today()), Decimal(0))),
         "gross_sales": float(totals["gross_sales"]),
         "gross_profit": float(totals["gross_profit"]),
         "net_profit": float(totals["net_profit"]),
