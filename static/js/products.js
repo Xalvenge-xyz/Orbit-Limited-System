@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       modal.classList.add('hidden');
       load();
-    } catch (err) { showToast(err.message, 'error'); }
+    } catch (err) { showToast(err.message, 'error'); alert(err.message); }
   };
   tbody.addEventListener('click', async (e) => {
     if (e.target.dataset.edit) {

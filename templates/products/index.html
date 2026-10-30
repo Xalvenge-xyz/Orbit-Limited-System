@@ -71,7 +71,7 @@ async function saveProduct() {
       target_gross_margin: f.elements.target_gross_margin.value || null,
       stock: parseInt(f.elements.stock.value||0), reorder_level: parseInt(f.elements.reorder_level.value||3)
     };
-  } catch (e) { showToast('Form error: ' + e.message, 'error'); return; }
+  } catch (e) { showToast('Form error: ' + e.message, 'error'); alert('Form error: ' + e.message); return; }
   const idv = (f.querySelector('input[name="id"]')||{}).value;
   try {
     const r = await api.post(idv ? '/products/api/' + idv + '/update' : '/products/api/create', payload);

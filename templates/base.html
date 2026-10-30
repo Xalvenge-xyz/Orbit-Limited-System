@@ -113,6 +113,7 @@
     async function exportJSONData(){ try { const r=await fetch('/dashboard/api/metrics'); const d=await r.json(); const blob=new Blob([JSON.stringify(d,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='orbit_export.json'; a.click(); } catch(e){ showToast('Export failed','error'); } }
     window.exportJSONData = exportJSONData;
   </script>
+  <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
   <script src="{{ url_for('static', filename='js/api.js') }}"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   {% block extra_js %}{% endblock %}
