@@ -2,22 +2,42 @@ import os
 from datetime import timedelta
 
 
-class Config:
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-me")
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL", "mysql+pymysql://root:@127.0.0.1:3306/orbit_pos"
-    )
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_ENGINE_OPTIONS = {
+def _fix_db_url(url):
+    # Render provides postgres:// ; SQLAlchemy 1.4+ requires postgresql://
+    if url and url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    # TiDB/MySQL default URLs use mysql:// ; force PyMySQL driver
+    if url and url.startswith("mysql://"):
+        url = url.replace("mysql://", "mysql+pymysql://", 1)
+    return url
+
+
+def _engine_options(url):
+    opts = {
         "pool_pre_ping": True,
         "pool_recycle": 3600,
     }
+    # TiDB Cloud (serverless) rejects non-TLS connections. Enable TLS for
+    # TiDB Cloud hosts. Verification is disabled to avoid bundling CA certs;
+    # the connection is still encrypted in transit.
+    if url and "tidbcloud.com" in url:
+        opts["connect_args"] = {"ssl": {"verify_mode": "none"}}
+    return opts
+
+
+class Config:
+    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+    SQLALCHEMY_DATABASE_URI = _fix_db_url(os.environ.get(
+        "DATABASE_URL", "mysql+pymysql://root:@127.0.0.1:3306/orbit_pos"
+    ))
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = _engine_options(SQLALCHEMY_DATABASE_URI)
 
     # Sessions
     PERMANENT_SESSION_LIFETIME = timedelta(hours=8)
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
-    SESSION_COOKIE_SECURE = False  # set True in production over HTTPS
+    SESSION_COOKIE_SECURE = os.environ.get("FLASK_ENV", "").lower() == "production" or os.environ.get("RENDER") == "true"
 
     # WTF
     WTF_CSRF_ENABLED = True
@@ -30,6 +50,7 @@ class Config:
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = os.environ.get("MAIL_DEFAULT_SENDER", "noreply@orbitpos.local")
+    MAIL_TIMEOUT = int(os.environ.get("MAIL_TIMEOUT", 5))
 
     # OAuth (optional)
     GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
