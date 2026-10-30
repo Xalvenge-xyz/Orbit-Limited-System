@@ -51,6 +51,7 @@ class Config:
     MAIL_TIMEOUT = int(os.environ.get("MAIL_TIMEOUT", 5))
     MAIL_ENABLED = os.environ.get("MAIL_ENABLED", "false").lower() == "true"
     RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+    SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 
     # OAuth (optional)
     GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")

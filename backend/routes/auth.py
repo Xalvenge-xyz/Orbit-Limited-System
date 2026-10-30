@@ -127,10 +127,39 @@ def forgot_password():
             try:
                 from flask import current_app
                 otp_sent = False
-                # Try Resend HTTP API (works on Render free tier, no SMTP needed)
-                resend_key = current_app.config.get("RESEND_API_KEY") or os.environ.get("RESEND_API_KEY")
-                print(f"[ORBIT-POS] Resend key present: {bool(resend_key)}", flush=True)
-                if resend_key:
+                # Try SendGrid HTTP API first (free 100/day, sends to ANY email with single sender verification)
+                sendgrid_key = current_app.config.get("SENDGRID_API_KEY") or os.environ.get("SENDGRID_API_KEY")
+                print(f"[ORBIT-POS] SendGrid key present: {bool(sendgrid_key)}", flush=True)
+                if sendgrid_key:
+                    try:
+                        import json as _json
+                        import urllib.request as _urllib
+                        import urllib.error as _urlerr
+                        sender = current_app.config.get("MAIL_DEFAULT_SENDER") or "noreply@orbitpos.local"
+                        payload = _json.dumps({
+                            "personalizations": [{"to": [{"email": email}]}],
+                            "from": {"email": sender},
+                            "subject": "ORBIT-POS Password Reset OTP",
+                            "content": [{"type": "text/plain", "value": f"Your ORBIT-POS password reset code is: {otp}\n\nThis code expires in 10 minutes. If you did not request this, ignore this email."}],
+                        }).encode()
+                        req = _urllib.Request(
+                            "https://api.sendgrid.com/v3/mail/send",
+                            data=payload,
+                            headers={"Authorization": f"Bearer {sendgrid_key}", "Content-Type": "application/json"},
+                        )
+                        with _urllib.urlopen(req, timeout=10) as resp:
+                            body = resp.read().decode()
+                            print(f"[ORBIT-POS] SendGrid response: {resp.status} {body}", flush=True)
+                            if resp.status in (200, 201, 202):
+                                otp_sent = True
+                    except _urlerr.HTTPError as he:
+                        err_body = he.read().decode() if he.fp else ""
+                        print(f"[ORBIT-POS] SendGrid HTTP error: {he.code} {err_body}", flush=True)
+                    except Exception as he:
+                        print(f"[ORBIT-POS] SendGrid request failed: {he}", flush=True)
+                # Fallback: Resend (free, but only sends to account owner email without domain)
+                elif current_app.config.get("RESEND_API_KEY") or os.environ.get("RESEND_API_KEY"):
+                    resend_key = current_app.config.get("RESEND_API_KEY") or os.environ.get("RESEND_API_KEY")
                     try:
                         import resend as _resend
                         _resend.api_key = resend_key
